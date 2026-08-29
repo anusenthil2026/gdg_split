@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import { Link, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Image, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -30,17 +30,56 @@ function getDevMenuHint() {
 
 export default function HomeScreen() {
   const [savedEvents, setSavedEvents] = useState<StoredEvent[]>([]);
+  const animatedTitleColor = useRef(new Animated.Value(0)).current;
 
   const fetchEvents = useCallback(async () => {
     const events = await loadSavedEvents();
     setSavedEvents(events);
   }, []);
 
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedTitleColor, {
+          toValue: 1,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(animatedTitleColor, {
+          toValue: 2,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(animatedTitleColor, {
+          toValue: 3,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(animatedTitleColor, {
+          toValue: 0,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ]),
+    ).start();
+  }, [animatedTitleColor]);
+
   useFocusEffect(
     useCallback(() => {
       fetchEvents();
     }, [fetchEvents]),
   );
+
+  const animatedTitleStyle = {
+    color: animatedTitleColor.interpolate({
+      inputRange: [0, 1, 2, 3],
+      outputRange: ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b'],
+    }),
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -51,9 +90,9 @@ export default function HomeScreen() {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Quick - Split
-          </ThemedText>
+          <Animated.Text style={[styles.title, animatedTitleStyle]}>
+            Welcome to Quick - Split
+          </Animated.Text>
         </ThemedView>
 
         <Link href="/split" asChild>
@@ -127,6 +166,9 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
+    fontSize: 48,
+    fontWeight: '600',
+    lineHeight: 52,
   },
   code: {
     textTransform: 'uppercase',
