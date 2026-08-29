@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { loadSavedEvents, saveSavedEvents } from '@/utils/event-storage';
 
 type Participant = {
   id: string;
@@ -160,6 +161,31 @@ export default function SplitScreen() {
     setSelectedParticipants(participants.map((participant) => participant.id));
   };
 
+  const saveCurrentEvent = async () => {
+    if (!eventName.trim() || participants.length === 0 || expenses.length === 0) {
+      return;
+    }
+
+    const savedEvents = await loadSavedEvents();
+    const newEvent = {
+      id: Date.now().toString(),
+      name: eventName.trim(),
+      description: eventDescription.trim(),
+      createdAt: new Date().toISOString(),
+      total: totalSpent,
+      participants: participants.map((participant) => participant.name),
+      expenses: expenses.map((expense) => ({
+        id: expense.id,
+        title: expense.title,
+        amount: expense.amount,
+        paidBy: expense.paidBy,
+        participants: expense.participants,
+      })),
+    };
+
+    await saveSavedEvents([newEvent, ...savedEvents]);
+  };
+
   return (
     <ScrollView
       style={[styles.scrollView, { backgroundColor: theme.background }]}
@@ -285,6 +311,12 @@ export default function SplitScreen() {
               Add expense
             </ThemedText>
           </Pressable>
+
+          <Pressable onPress={saveCurrentEvent} style={[styles.primaryButton, styles.saveButton]}>
+            <ThemedText type="smallBold" themeColor="text">
+              Save Event
+            </ThemedText>
+          </Pressable>
         </ThemedView>
 
         <ThemedView style={styles.sectionCard}>
@@ -399,6 +431,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#3c87f7',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  saveButton: {
+    backgroundColor: '#22c55e',
   },
   summaryTitle: {
     marginBottom: -Spacing.one,

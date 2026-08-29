@@ -1,11 +1,13 @@
 import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Image, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { type StoredEvent, loadSavedEvents } from '@/utils/event-storage';
 
 function getDevMenuHint() {
   if (Platform.OS === 'web') {
@@ -27,33 +29,71 @@ function getDevMenuHint() {
 }
 
 export default function HomeScreen() {
+  const [savedEvents, setSavedEvents] = useState<StoredEvent[]>([]);
+
+  const fetchEvents = useCallback(async () => {
+    const events = await loadSavedEvents();
+    setSavedEvents(events);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [fetchEvents]),
+  );
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
+          <Image
+            source={require('@/images/logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;GDG - Split
+            Welcome to&nbsp;Quick - Split
           </ThemedText>
         </ThemedView>
 
-        <ThemedText type="code" style={styles.code}>
-          participants Owes List
-        </ThemedText>
+        <Link href="/split" asChild>
+          <Pressable style={styles.createButton}>
+            <ThemedText type="smallBold" themeColor="text">
+              + New Event
+            </ThemedText>
+          </Pressable>
+        </Link>
 
-        {/* <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView> */}
-
-        {/* {Platform.OS === 'web' && <WebBadge />} */}
+        <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent}>
+          {savedEvents.length === 0 ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              No saved events yet. Create one to get started.
+            </ThemedText>
+          ) : (
+            savedEvents.map((event) => (
+              <ThemedView key={event.id} type="backgroundElement" style={styles.eventCard}>
+                <ThemedText type="smallBold">{event.name}</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {event.description || 'No description'}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {event.participants.length} participants • Total {new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    maximumFractionDigits: 2,
+                  }).format(event.total)}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {new Date(event.createdAt).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </ThemedText>
+              </ThemedView>
+            ))
+          )}
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -80,11 +120,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     gap: Spacing.four,
   },
+  logoImage: {
+    width: 160,
+    height: 160,
+    marginTop: 100,
+  },
   title: {
     textAlign: 'center',
   },
   code: {
     textTransform: 'uppercase',
+  },
+  createButton: {
+    backgroundColor: '#3c87f7',
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  listContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  listContent: {
+    gap: Spacing.two,
+    paddingBottom: Spacing.five,
+  },
+  eventCard: {
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+    gap: Spacing.one,
   },
   stepContainer: {
     gap: Spacing.three,
