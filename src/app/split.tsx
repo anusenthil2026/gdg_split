@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
     Platform,
     Pressable,
@@ -36,6 +37,8 @@ const formatCurrency = (amount: number) =>
   }).format(amount);
 
 export default function SplitScreen() {
+  const params = useLocalSearchParams<{ eventId?: string }>();
+  const eventId = Array.isArray(params.eventId) ? params.eventId[0] : params.eventId;
   const safeAreaInsets = useSafeAreaInsets();
   const theme = useTheme();
   const [eventName, setEventName] = useState('');
@@ -67,6 +70,53 @@ export default function SplitScreen() {
       paddingBottom: Spacing.four,
     },
   });
+
+  useEffect(() => {
+    if (!eventId) {
+      return;
+    }
+
+    const loadEventForEdit = async () => {
+      const savedEvents = await loadSavedEvents();
+      const selectedEvent = savedEvents.find((event) => event.id === eventId);
+
+      if (!selectedEvent) {
+        return;
+      }
+
+      const normalizedParticipants = (selectedEvent.participants ?? []).map((participant, index) => {
+        if (typeof participant === 'string') {
+          return { id: participant || `participant-${index}`, name: participant };
+        }
+
+        return {
+          id: participant.id || `participant-${index}`,
+          name: participant.name,
+        };
+      });
+
+      const selectedParticipantIds = normalizedParticipants.map((participant) => participant.id);
+
+      setEventName(selectedEvent.name ?? '');
+      setEventDescription(selectedEvent.description ?? '');
+      setParticipants(normalizedParticipants);
+      setPaidBy(selectedParticipantIds[0] ?? '1');
+      setSelectedParticipants(selectedParticipantIds);
+      setExpenses(
+        (selectedEvent.expenses ?? []).map((expense) => ({
+          id: expense.id,
+          title: expense.title,
+          amount: Number(expense.amount || 0),
+          paidBy: selectedParticipantIds.includes(expense.paidBy) ? expense.paidBy : selectedParticipantIds[0] ?? '1',
+          participants: (expense.participants ?? []).filter((id) => selectedParticipantIds.includes(id)).length
+            ? (expense.participants ?? []).filter((id) => selectedParticipantIds.includes(id))
+            : selectedParticipantIds,
+        })),
+      );
+    };
+
+    loadEventForEdit();
+  }, [eventId]);
 
   const totalSpent = useMemo(
     () => expenses.reduce((sum, entry) => sum + Number(entry.amount || 0), 0),
@@ -167,13 +217,16 @@ export default function SplitScreen() {
     }
 
     const savedEvents = await loadSavedEvents();
-    const newEvent = {
-      id: Date.now().toString(),
+    const nextEvent = {
+      id: eventId ?? Date.now().toString(),
       name: eventName.trim(),
       description: eventDescription.trim(),
-      createdAt: new Date().toISOString(),
+      createdAt: eventId ? savedEvents.find((event) => event.id === eventId)?.createdAt ?? new Date().toISOString() : new Date().toISOString(),
       total: totalSpent,
-      participants: participants.map((participant) => participant.name),
+      participants: participants.map((participant) => ({
+        id: participant.id,
+        name: participant.name,
+      })),
       expenses: expenses.map((expense) => ({
         id: expense.id,
         title: expense.title,
@@ -183,7 +236,11 @@ export default function SplitScreen() {
       })),
     };
 
-    await saveSavedEvents([newEvent, ...savedEvents]);
+    const updatedEvents = eventId
+      ? savedEvents.map((event) => (event.id === eventId ? nextEvent : event))
+      : [nextEvent, ...savedEvents];
+
+    await saveSavedEvents(updatedEvents);
   };
 
   return (

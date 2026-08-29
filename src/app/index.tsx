@@ -1,13 +1,13 @@
 import * as Device from 'expo-device';
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { type StoredEvent, loadSavedEvents } from '@/utils/event-storage';
+import { type StoredEvent, loadSavedEvents, saveSavedEvents } from '@/utils/event-storage';
 
 function getDevMenuHint() {
   if (Platform.OS === 'web') {
@@ -36,6 +36,27 @@ export default function HomeScreen() {
     const events = await loadSavedEvents();
     setSavedEvents(events);
   }, []);
+
+  const deleteEvent = useCallback(async (eventId: string) => {
+    const currentEvents = await loadSavedEvents();
+    const updatedEvents = currentEvents.filter((event) => event.id !== eventId);
+
+    await saveSavedEvents(updatedEvents);
+    setSavedEvents(updatedEvents);
+  }, []);
+
+  const confirmDeleteEvent = useCallback((eventId: string) => {
+    Alert.alert('Delete event', 'Are you sure you want to delete this event?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deleteEvent(eventId);
+        },
+      },
+    ]);
+  }, [deleteEvent]);
 
   useEffect(() => {
     Animated.loop(
@@ -93,6 +114,8 @@ export default function HomeScreen() {
           <Animated.Text style={[styles.title, animatedTitleStyle]}>
             Welcome to Quick - Split
           </Animated.Text>
+          <div>&nbsp;</div>
+          <div>&nbsp;</div>
         </ThemedView>
 
         <Link href="/split" asChild>
@@ -129,6 +152,24 @@ export default function HomeScreen() {
                     year: 'numeric',
                   })}
                 </ThemedText>
+
+                <View style={styles.actionRow}>
+                  <Link
+                    href={{ pathname: '/split', params: { eventId: event.id } }}
+                    asChild>
+                    <Pressable style={styles.editButton}>
+                      <ThemedText type="smallBold" themeColor="text">
+                        Edit event
+                      </ThemedText>
+                    </Pressable>
+                  </Link>
+
+                  <Pressable style={styles.deleteButton} onPress={() => confirmDeleteEvent(event.id)}>
+                    <ThemedText type="smallBold" themeColor="text">
+                      Delete
+                    </ThemedText>
+                  </Pressable>
+                </View>
               </ThemedView>
             ))
           )}
@@ -179,6 +220,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  editButton: {
+    flex: 1,
+    backgroundColor: '#22c55e',
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    alignItems: 'center',
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: '#ef4444',
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
     alignItems: 'center',
   },
   listContainer: {

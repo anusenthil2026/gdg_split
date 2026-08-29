@@ -33,10 +33,10 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --web",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "echo \"Android device/emulator not available in this environment. Starting in web mode instead.\" && expo start --web",
+    "ios": "echo \"iOS simulator not available in this environment. Starting in web mode instead.\" && expo start --web",
     "web": "expo start --web",
     "lint": "expo lint"
   },
