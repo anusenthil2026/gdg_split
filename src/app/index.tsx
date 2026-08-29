@@ -116,7 +116,7 @@ export default function HomeScreen() {
             resizeMode="contain"
           />
           <Animated.Text style={[styles.title, animatedTitleStyle]}>
-            Welcome to Quick - Split
+            Welcome to Quick-Split
           </Animated.Text>
           <div>&nbsp;</div>
           <div>&nbsp;</div>
