@@ -1,56 +1,120 @@
-# Welcome to your Expo app 👋
+# Campus QuickSplit
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Campus QuickSplit is a lightweight expense-splitting app designed for group outings, lunches, and shared costs. It helps users create an event, add participants, log expenses, and instantly view how much each person paid, owes, or should receive back.
 
-## Get started
+This app is built with Expo and React Native and is optimized for quick local testing in the browser when an Android/iOS emulator is not available.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- Create and save group events
+- Add participants by name
+- Add multiple expenses with a payer and shared participants
+- Split the cost equally among selected people
+- View an event summary with per-person pay/owe balances
+- Edit existing saved events
+- Delete saved events after confirmation
+- Store event data locally in AsyncStorage
 
-2. Start the app
+## App walkthrough
 
-   ```bash
-   npx expo start
-   ```
+### 1. Landing screen
 
-In the output, you'll find options to open the app in a
+The home screen shows the app branding and a list of saved events. Users can create a new event or reopen and edit an existing one.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+![Landing screen](app_demo_screens/landing.png)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 2. Create a new event
 
-## Get a fresh project
+From the home screen, tap the New Event button to open the event creation flow. The screen allows you to:
 
-When you're ready, run:
+- enter the event name
+- add a short description
+- add participants
+- create expenses
+- choose who paid and who was involved in the split
+
+![Create event screen](app_demo_screens/split_1.png)
+
+### 3. Add participants and expense details
+
+Users can add participant names and then add expenses such as lunch, travel, or food. Each expense includes:
+
+- expense title
+- amount
+- payer
+- selected participants contributing to that cost
+
+The app automatically calculates the equal share for each participant based on the selected group.
+
+### 4. Save and check summary
+
+Once the event is saved, the app shows a complete summary with:
+
+- total spent
+- each person's paid amount
+- each person's owed amount
+- who gets money back and who owes the group
+- the expense list with split details
+
+![Event summary](app_demo_screens/split_2.png)
+
+## Typical user flow
+
+1. Open the app and tap New Event.
+2. Enter the event name and description.
+3. Add all participants.
+4. Add one or more expenses.
+5. Select who paid and which people should share the bill.
+6. Tap Save Event.
+7. Review the summary and balances.
+8. Edit or delete the event later from the home screen.
+
+## Project setup
+
+### Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Run the app
 
-### Other setup steps
+For a browser-based local run:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm run web
+```
 
-## Learn more
+You can also use:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npx expo start --web
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+> In environments without an Android/iOS simulator, the web option is the most reliable way to run and test the app.
 
-## Join the community
+## Local storage behavior
 
-Join our community of developers creating universal apps.
+The app keeps event data in AsyncStorage using a local key for saved events. This means:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- previously created events remain available after reopening the app
+- users can edit saved events without losing their current data
+- deleting a saved event removes it from local storage and refreshes the list on the home screen
+
+## Tech stack
+
+- Expo
+- React Native
+- TypeScript
+- AsyncStorage
+- Expo Router
+
+## Screenshots
+
+- [Landing screen](app_demo_screens/landing.png)
+- [Create event screen](app_demo_screens/split_1.png)
+- [Event summary](app_demo_screens/split_2.png)
+
+## Notes
+
+This project is a simple, user-friendly expense-splitting app intended for group cost tracking. It focuses on quick event setup and clear settlement summaries for groups sharing expenses.
