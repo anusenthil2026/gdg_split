@@ -106,6 +106,10 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.heroSection}>
+          <div>&nbsp;</div>
+          <div>&nbsp;</div>
+          <div>&nbsp;</div>
+          <div>&nbsp;</div>
           <Image
             source={require('@/images/logo.png')}
             style={styles.logoImage}
@@ -116,7 +120,11 @@ export default function HomeScreen() {
           </Animated.Text>
           <div>&nbsp;</div>
           <div>&nbsp;</div>
+          <div>&nbsp;</div>
+          <div>&nbsp;</div>
         </ThemedView>
+
+        <div>&nbsp;</div>
 
         <Link href="/split" asChild>
           <Pressable style={styles.createButton}>
